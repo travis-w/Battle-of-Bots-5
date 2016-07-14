@@ -32,40 +32,26 @@ def valid_moves(board):
                 valid.append((i, j))
     return valid
 
+
+# Take direction and turn into delta x/y
+def dir_to_delta(direction):
+    delta = {
+        1: (-1, 0),  # UP
+        2: (-1, 1),  # UP-RIGHT
+        3: (0, 1),   # RIGHT
+        4: (1, 1),   # DOWN-RIGHT
+        5: (1, 0),   # DOWN
+        6: (1, -1),  # DOWN-LEFT
+        7: (0, -1),  # LEFT
+        8: (-1, -1)  # UP-LEFT
+    }
+
+    return delta[direction]
+
+
 # Check direction until empty space or own piece. Returns number of opponent pieces in path
 def check_direction(board, start, player, direction):
-    if direction == 1:
-        # UP
-        delta_y = -1
-        delta_x = 0
-    elif direction == 2:
-        # UP-RIGHT
-        delta_y = -1
-        delta_x = 1
-    elif direction == 3:
-        # RIGHT
-        delta_y = 0
-        delta_x = 1
-    elif direction == 4:
-        # DOWN-RIGHT
-        delta_y = 1
-        delta_x = 1
-    elif direction == 5:
-        # DOWN
-        delta_y = 1
-        delta_x = 0
-    elif direction == 6:
-        # DOWN-LEFT
-        delta_y = 1
-        delta_x = -1
-    elif direction == 7:
-        # LEFT
-        delta_y = 0
-        delta_x = -1
-    elif direction == 8:
-        # UP-LEFT
-        delta_y = -1
-        delta_x = -1
+    delta_y, delta_x = dir_to_delta(direction)
 
     current_piece = (start[0] + delta_y, start[1] + delta_x)
     opponent_pieces = 0
@@ -82,6 +68,18 @@ def check_direction(board, start, player, direction):
     return opponent_pieces
 
 
+# Check corners and make move if any
+def check_corners(moves):
+    corners = [(0,0), (0,9), (9,0), (9,9)]
+
+    for move in moves:
+        if move in corners:
+            # Just return first corner for now
+            return move
+
+    return None
+
+
 # Make a random move from a list of moves
 def random_move(moves):
     x = randint(0, len(moves)-1)
@@ -91,6 +89,14 @@ def random_move(moves):
 def make_move(board, player):
     # Get points of all points
     moves = valid_moves(board)
+
+    # Check for corners first
+    corner = check_corners(moves)
+
+    if corner is not None:
+        print_move(corner, "Corner")
+        return
+
     best_move = 0
     best_score = 0
 
