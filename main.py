@@ -79,6 +79,28 @@ def check_corners(moves):
 
     return None
 
+# Given a list of moves, remove pieces that set up corners
+def remove_corner_setups(board, moves):
+    new_moves = []
+
+    setups = {
+        (0,0): [(0,1), (1,0), (1,1)],
+        (0,9): [(0,8), (1,9), (1,8)],
+        (9,0): [(8,0), (8,1), (9,1)],
+        (9,9): [(9,8), (8,8), (8,9)]
+    }
+
+    for move in moves:
+        valid = True
+
+        for key, value in setups.items():
+            if move in value and get_piece(board, key) == 0:
+                valid = False
+        if valid:
+            new_moves.append(move)
+
+    return new_moves
+
 
 # Make a random move from a list of moves
 def random_move(moves):
@@ -96,6 +118,12 @@ def make_move(board, player):
     if corner is not None:
         print_move(corner, "Corner")
         return
+
+    # Remove setups from list of valid moves
+    moves = remove_corner_setups(board, moves)
+
+    if len(moves) == 0:
+        moves = valid_moves(board)
 
     best_move = 0
     best_score = 0
