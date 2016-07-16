@@ -62,7 +62,7 @@ def check_direction(board, start, player, direction):
         current_piece = (current_piece[0] + delta_y, current_piece[1] + delta_x)
     else:
         # Reset score if doesnt end in player piece
-        if not in_bounds(current_piece) or get_piece(board, current_piece) != 1:
+        if not in_bounds(current_piece) or get_piece(board, current_piece) != player:
             opponent_pieces = 0
 
     return opponent_pieces
