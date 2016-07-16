@@ -102,6 +102,26 @@ def remove_corner_setups(board, moves):
     return new_moves
 
 
+def get_power_spots(board, moves):
+    power_moves = {
+        (0,0): [(0,2), (2,0), (2,2)],
+        (0,9): [(0,7), (2,9), (2,7)],
+        (9,0): [(7,0), (9,2), (7,2)],
+        (9,9): [(9,7), (7,9), (7,7)]
+    }
+
+    available_power = []
+
+    for corner, pm in power_moves.items():
+        if get_piece(board, corner) == 0:
+            for move in pm:
+                available_power.append(move)
+
+    available_moves = [x for x in moves if x in available_power]
+
+    return available_moves
+
+
 # Make a random move from a list of moves
 def random_move(moves):
     x = randint(0, len(moves)-1)
@@ -117,6 +137,13 @@ def make_move(board, player):
 
     if corner is not None:
         print_move(corner, "Corner")
+        return
+
+    # Check power_moves
+    power = get_power_spots(board, moves)
+
+    if len(power) > 0:
+        random_move(power)
         return
 
     # Remove setups from list of valid moves
