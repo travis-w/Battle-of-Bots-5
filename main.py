@@ -1,4 +1,5 @@
 from random import randint
+from copy import deepcopy
 
 # Read board into 2d list
 def read_board():
@@ -67,6 +68,83 @@ def check_direction(board, start, player, direction):
 
     return opponent_pieces
 
+# Check direction until empty space or own piece. Returns number of opponent pieces in path
+def check_direction_two(board, start, player, direction):
+    delta_y, delta_x = dir_to_delta(direction)
+
+    current_piece = (start[0] + delta_y, start[1] + delta_x)
+    opponent_pieces = []
+
+    # Loop until current piece is
+    while in_bounds(current_piece) and get_piece(board, current_piece) != player and get_piece(board, current_piece) != 3 and get_piece(board, current_piece) != 0:
+        opponent_pieces.append(current_piece)
+        current_piece = (current_piece[0] + delta_y, current_piece[1] + delta_x)
+    else:
+        # Reset score if doesnt end in player piece
+        if not in_bounds(current_piece) or get_piece(board, current_piece) != player:
+            opponent_pieces = []
+
+    return opponent_pieces
+
+def check_open(board, start, player):
+    opponent = 2 if player == 1 else 1
+    
+    pieces_to_replace = []
+    tmp_board = deepcopy(board)
+
+    for i in range(10):
+        for j in range(10):
+            if tmp_board[i][j] == 3:
+                tmp_board[i][j] = 0
+
+    for direction in range(1, 9):
+        tmp_pieces = check_direction_two(board, start, player, direction)
+        pieces_to_replace = pieces_to_replace + tmp_pieces
+
+    for piece in pieces_to_replace:
+        tmp_board[piece[0]][piece[1]] = player
+
+    score = 0
+    for direction in range(1, 5):
+        delta_y, delta_x = dir_to_delta(direction)
+
+        next_piece = (start[0] + delta_y, start[1] + delta_x)
+
+        count = 0
+        top_empty = False
+        top_out = False
+
+        while in_bounds(next_piece) and get_piece(tmp_board, next_piece) == player:
+            if get_piece(board, next_piece) == opponent:
+                count += 1
+            next_piece = (next_piece[0] + delta_y, next_piece[1] + delta_x)
+        else:
+            if in_bounds(next_piece) and get_piece(tmp_board, next_piece) == 0:
+                top_empty = True
+            elif not in_bounds(next_piece):
+                top_out = True
+
+        next_piece = (start[0] - delta_y, start[1] - delta_x)
+
+        bot_empty = False
+        bot_out = False
+
+        while in_bounds(next_piece) and get_piece(tmp_board, next_piece) == player:
+            if get_piece(board, next_piece) == opponent:
+                count += 1
+            next_piece = (next_piece[0] - delta_y, next_piece[1] - delta_x)
+        else:
+            if in_bounds(next_piece) and get_piece(tmp_board, next_piece) == 0:
+                bot_empty = True
+            elif not in_bounds(next_piece):
+                bot_out = True
+
+        if bot_out or top_out or (bot_empty and top_empty) and count > 0:
+            score += count
+            #ret.append((direction, count, bot_out, top_out, bot_empty, top_empty))
+
+    return score
+
 
 # Check corners and make move if any
 def check_corners(moves):
@@ -104,10 +182,10 @@ def remove_corner_setups(board, moves):
 
 def get_power_spots(board, moves):
     power_moves = {
-        (0,0): [(0,2), (2,0), (2,2)],
-        (0,9): [(0,7), (2,9), (2,7)],
-        (9,0): [(7,0), (9,2), (7,2)],
-        (9,9): [(9,7), (7,9), (7,7)]
+        (0,0): [(0,2), (2,0)],
+        (0,9): [(0,7), (2,9)],
+        (9,0): [(7,0), (9,2)],
+        (9,9): [(9,7), (7,9)]
     }
 
     available_power = []
@@ -118,6 +196,21 @@ def get_power_spots(board, moves):
                 available_power.append(move)
 
     available_moves = [x for x in moves if x in available_power]
+
+    if len(available_moves) == 0:
+        power_moves = {
+            (0,0): [(2,2)],
+            (0,9): [(2,7)],
+            (9,0): [(7,2)],
+            (9,9): [(7,7)]
+        }
+
+        for corner, pm in power_moves.items():
+            if get_piece(board, corner) == 0:
+                for move in pm:
+                    available_power.append(move)
+
+        available_moves = [x for x in moves if x in available_power]
 
     return available_moves
 
@@ -156,9 +249,7 @@ def make_move(board, player):
     best_score = 0
 
     for i in range(len(moves)):
-        cur_score = 0
-        for direction in range(1,9):
-            cur_score += check_direction(board, moves[i], player, direction)
+        cur_score = check_open(board, moves[i], player)
         if cur_score >= best_score:
             best_score = cur_score
             best_move = i
