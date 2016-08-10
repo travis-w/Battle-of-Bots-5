@@ -1,12 +1,24 @@
 from random import randint
 from copy import deepcopy
 
+# Number of passive turns to make
+PASIVE_TURNS = 35
+
 # Read board into 2d list
 def read_board():
     board = []
     for i in range(10):
         board.append([int(x) for x in input().split()])
     return board
+
+# Get Number of current turn
+def num_turn():
+    turns = 0
+    for i in range(10):
+        for j in range(10):
+            if board[i][j] == 1 or board[i][j] == 2:
+                turns += 1
+    return turns + 1
 
 # Print move and reason
 def print_move(place, reason):
@@ -88,7 +100,7 @@ def check_direction_two(board, start, player, direction):
 
 def check_open(board, start, player):
     opponent = 2 if player == 1 else 1
-    
+
     pieces_to_replace = []
     tmp_board = deepcopy(board)
 
@@ -229,7 +241,7 @@ def make_move(board, player):
     corner = check_corners(moves)
 
     if corner is not None:
-        print_move(corner, "Corner")
+        print_move(corner, "Thankyou")
         return
 
     # Check power_moves
@@ -247,14 +259,24 @@ def make_move(board, player):
 
     best_move = 0
     best_score = 0
+    reason = ""
 
-    for i in range(len(moves)):
-        cur_score = check_open(board, moves[i], player)
-        if cur_score >= best_score:
-            best_score = cur_score
-            best_move = i
+    if num_turn() <= PASIVE_TURNS:
+        reason = "Passive"
+        for i in range(len(moves)):
+            cur_score = check_open(board, moves[i], player)
+            if cur_score <= best_score:
+                best_score = cur_score
+                best_move = i
+    else:
+        reason = "Aggro"
+        for i in range(len(moves)):
+            cur_score = check_open(board, moves[i], player)
+            if cur_score >= best_score:
+                best_score = cur_score
+                best_move = i
 
-    print_move(moves[best_move], "Best Score")
+    print_move(moves[best_move], reason)
 
 if __name__ == "__main__":
     board = read_board()
