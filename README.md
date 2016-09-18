@@ -1,4 +1,4 @@
-# Battle of Bots 5
+# Reversi Bot
 This is my entry to the [HackerEarth Battle of Bots 5 competition](https://www.hackerearth.com/battle-of-bots-5/multiplayer/reversi/) (requires login).
 
 ## Objective
